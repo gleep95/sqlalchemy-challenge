@@ -1,7 +1,4 @@
-# Import the dependencies.
-from dateutil.relativedelta import relativedelta
 import pandas as pd
-import datetime as dt
 import numpy as np
 import sqlalchemy
 from sqlalchemy.ext.automap import automap_base
@@ -35,6 +32,8 @@ app = Flask(__name__)
 #################################################
 # Flask Routes
 #################################################
+
+#List all the available routes.
 @app.route("/")
 def welcome():
     return (
@@ -44,7 +43,7 @@ def welcome():
         f"/api/v1.0/start<br/>"
         f"/api/v1.0/start/end<br/>")
 
-
+#Return the JSON representation of your dictionary.
 @app.route("/api/v1.0/precipitation")
 def precipitation():
     session_link = Session(engine)
@@ -56,16 +55,16 @@ def precipitation():
         prcp_dict["precipitation"] = prcp
         prcp_dict["date"] = date
         prcp_list.append(prcp_data)
+    print(prcp_list)
     return jsonify(prcp_list) 
 
-
+#Return a JSON list of stations from the dataset.
 @app.route("/api/v1.0/stations")
 def stations():
     station_data = session_link.query(HI_station.station, HI_station.name).all()
     return jsonify(station_data)
 
-
-
+#Return a JSON list of temperature observations for the previous year.
 past_year = '2017-08-23'
 @app.route("/api/v1.0/tobs")
 def tobs():
@@ -73,16 +72,14 @@ def tobs():
     return jsonify(temp_data)
 
 
-
+#Return a JSON list of the minimum temperature, the average temperature, and the maximum temperature for a specified start or start-end range.
 @app.route("/api/v1.0/<start>")
 def start(date):
     temp_data1 = session_link.query(func.min(HI_measurement.tobs), func.avg(HI_measurement.tobs), func.max(HI_measurement.tobs)).filter(HI_measurement.date >= date).all()
     return jsonify(temp_data1)
 
 
-
-
-
+#For a specified start date and end date, calculate TMIN, TAVG, and TMAX for the dates from the start date to the end date, inclusive.
 @app.route("/api/v1.0/<start>/<end>")
 def end(start,end):
     temp_data2 = session_link.query(func.min(HI_measurement.tobs), func.avg(HI_measurement.tobs), func.max(HI_measurement.tobs)).filter(HI_measurement.date >= start).filter(HI_measurement.date <= end).all()
